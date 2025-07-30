@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>My Baby Brishti</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Dancing Script', cursive;
+      background: linear-gradient(135deg, #ffe6f0 0%, #ffc2d1 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      overflow: hidden;
+    }
+    h1 {
+      margin: 10px 0;
+      color: #b30059;
+      font-size: 2.2rem;
+      text-align: center;
+      padding: 0 10px;
+    }
+    #wheelContainer {
+      position: relative;
+      width: 90vw;
+      max-width: 400px;
+      height: 90vw;
+      max-height: 400px;
+    }
+    #pointer {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 25px solid #800040;
+      z-index: 10;
+    }
+    #wheelCanvas {
+      width: 100%;
+      height: 100%;
+      border: 4px solid #800040;
+      border-radius: 50%;
+    }
+    button {
+      margin-top: 10px;
+      padding: 12px 20px;
+      font-size: 1.2rem;
+      background: #ff66a3;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      font-family: 'Dancing Script', cursive;
+    }
+    #winner {
+      margin-top: 8px;
+      font-size: 1.6rem;
+      color: #800040;
+      text-align: center;
+      min-height: 1.5em;
+      padding: 0 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Baby Brishti</h1>
+  <div id="wheelContainer">
+    <div id="pointer"></div>
+    <canvas id="wheelCanvas"></canvas>
+  </div>
+  <button onclick="spinWheel()">Spin</button>
+  <div id="winner"></div>
+
+  <script>
+    const segments = [
+      "Kisses on forehead",
+      "Love bites",
+      "Just you for a whole day",
+      "Movie night",
+      "Horror movie night",
+      "Control over me"
+    ];
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+    let currentRotation = 0;
+    let isSpinning = false;
+
+    function resizeCanvas() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      drawWheel(0);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    document.addEventListener('DOMContentLoaded', resizeCanvas);
+
+    function drawWheel(rotation) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radius = Math.min(cx, cy) - 5;
+      const anglePer = 2 * Math.PI / segments.length;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rotation);
+      segments.forEach((s, i) => {
+        const start = i * anglePer;
+        const end = start + anglePer;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, start, end);
+        ctx.fillStyle = `hsl(${i * 360 / segments.length}, 85%, 75%)`;
+        ctx.fill();
+        ctx.strokeStyle = '#800040';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.save();
+        ctx.rotate(start + anglePer/2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#4d004d';
+        ctx.font = `${Math.floor(radius * 0.1)}px 'Dancing Script'`;
+        ctx.fillText(s, radius - 10, 10);
+        ctx.restore();
+      });
+      ctx.restore();
+    }
+
+    function spinWheel() {
+      if (isSpinning) return;
+      isSpinning = true;
+      document.getElementById('winner').textContent = '';
+      const spins = 4 + Math.random() * 3;
+      const finalRotation = spins * 2 * Math.PI + Math.random() * 2 * Math.PI;
+      const duration = 3500;
+      const startTime = performance.now();
+
+      function animate(time) {
+        const elapsed = time - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 4);
+        currentRotation = finalRotation * ease;
+        drawWheel(currentRotation);
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          revealWinner(finalRotation % (2 * Math.PI));
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function revealWinner(offset) {
+      const anglePer = 2 * Math.PI / segments.length;
+      const normalized = (2 * Math.PI - offset) % (2 * Math.PI);
+      const index = Math.floor(normalized / anglePer);
+      document.getElementById('winner').textContent = `Winner: ${segments[index]}`;
+    }
+  </script>
+</body>
+</html>
